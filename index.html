@@ -98,13 +98,61 @@
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/light-v11',
-            center: [0, 0],
-            zoom: 2,
+            center: {
+                lng: 5.3478064906874465, lat: 52.44087219932251,
+            },
+            zoom: 7,
             projection: 'mercator',
         });
 
         // Wait for the map to load
         map.on('load', function () {
+
+            map.addSource('border', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+            map.addLayer({
+                id: 'border-layer',
+                type: 'line',
+                source: 'border',
+                paint: {
+                    'line-color': 'red',
+                    'line-width': 2
+                }
+            });
+
+
+            map.addSource('gemeenten', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+            map.addLayer({
+                id: 'gemeenten-layer',
+                type: 'fill',
+                source: 'gemeenten',
+                paint: {
+                    'fill-color': '#888888',
+                    'fill-opacity': 0.5
+                }
+            });
+            map.addLayer({
+                id: 'gemeenten-outline',
+                type: 'line',
+                source: 'gemeenten',
+                paint: {
+                    'line-color': '#000000',
+                    'line-width': 1
+                }
+            });
+
+
             // Add an empty GeoJSON source for points
             map.addSource('points', {
                 type: 'geojson',
@@ -128,6 +176,9 @@
                 }
             });
 
+
+            uploadNLBorder();
+            uploadGeoJSONData();
             fetchCSVData();
 
             function fetchCSVData() {
@@ -158,6 +209,25 @@
                         hideLoading()
                     })
             }
+
+            function uploadGeoJSONData() {
+                fetch("./data/gemeenten.json")
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('geojson data', data);
+                        map.getSource('gemeenten').setData(data);
+                    })
+            }
+
+            function uploadNLBorder() {
+                fetch("./data/border.json")
+                    .then(response => response.json())
+                    .then(data => {
+                        map.getSource('border').setData(data);
+                    })
+            }
+
+
 
         });
 
